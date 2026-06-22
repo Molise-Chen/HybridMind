@@ -13,6 +13,7 @@ eggs/
 venv/
 data/chroma_db/
 *.log
+*.pdf
 node_modules/
 .reasonix/
 .DS_Store
