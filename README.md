@@ -25,6 +25,11 @@
 ### 3. 🔌 动态技能热加载
 现有工具不够用？HybridMind 可以实时编写 Python 代码、动态安装依赖，封装为临时功能模块——无需重启，即刻生效。
 
+### 4. 🔍 全盘文件自动检索
+说"读取 xxx.pdf"而文件不在当前目录？HybridMind 自动扫描三层路径：
+CWD → 桌面/文档/下载 → 全盘递归搜索（模糊匹配、限时保护），
+搜不到还会提示已查过哪些范围，不让你猜。
+
 ---
 
 ## 🏗️ 架构总览
@@ -66,7 +71,7 @@ graph TB
 
 ```bash
 # 克隆仓库
-git clone https://github.com/<your-username>/HybridMind.git
+git clone https://github.com/Molise-Chen/HybridMind.git
 cd HybridMind
 
 # 创建虚拟环境
@@ -132,7 +137,7 @@ HybridMind/
 │   │   └── multimodal_skill.py  # 多模态解析技能
 │   └── utils/
 │       ├── logger.py        # 日志工具
-│       └── file_utils.py    # 文件读写工具
+│       └── file_utils.py    # 文件读写 + GlobalFileFinder 全盘搜索
 ├── tests/                   # 单元测试
 ├── data/                    # 知识库数据 & ChromaDB 持久化
 ├── requirements.txt
