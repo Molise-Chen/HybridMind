@@ -59,6 +59,22 @@ LLM_BASE_URL: str = os.getenv("HYBRIDMIND_LLM_BASE_URL", "https://api.openai.com
 # 自愈闭环重试次数
 MAX_RETRY: int = int(os.getenv("HYBRIDMIND_MAX_RETRY", "3"))
 
+# ---- 文件搜索配置 ----
+# 全盘文件搜索超时（秒）
+FILE_SEARCH_TIMEOUT: float = float(os.getenv("HYBRIDMIND_SEARCH_TIMEOUT", "15"))
+
+# 额外的搜索根目录（分号分隔）
+EXTRA_SEARCH_PATHS: list[str] = [
+    p.strip() for p in os.getenv("HYBRIDMIND_SEARCH_PATHS", "").split(";")
+    if p.strip()
+]
+
+# 搜索时跳过的目录名（追加到默认黑名单）
+EXTRA_SKIP_DIRS: set[str] = set(
+    d.strip() for d in os.getenv("HYBRIDMIND_SKIP_DIRS", "").split(";")
+    if d.strip()
+)
+
 # ---- 初始化 ----
 def ensure_dirs() -> None:
     """确保必要的目录存在。"""

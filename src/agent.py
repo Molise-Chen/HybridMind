@@ -6,13 +6,14 @@ HybridMind — Agent 调度核心 + 自愈闭环
 from pathlib import Path
 from typing import Optional
 
-from src.config import MAX_RETRY, LLM_BACKEND, LLM_MODEL, LLM_API_KEY, LLM_BASE_URL
+from src.config import MAX_RETRY, LLM_BACKEND, LLM_MODEL, LLM_API_KEY, LLM_BASE_URL, FILE_SEARCH_TIMEOUT
 from src.router import IntentRouter, Intent
 from src.knowledge_base import HybridKnowledgeBase
 from src.skills.code_skill import CodeSkill
 from src.skills.doc_skill import DocSkill
 from src.skills.multimodal_skill import MultimodalSkill
 from src.utils.logger import logger
+from src.utils.file_utils import GlobalFileFinder
 
 
 class HybridMindAgent:
@@ -103,7 +104,27 @@ class HybridMindAgent:
                 # 尝试从输入中提取文件路径
                 file_path = self._extract_file_path(user_input)
                 if file_path:
-                    desc = self.multimodal_skill.describe_content(file_path)
+                    # 如果本地路径不存在，启动全盘搜索
+                    resolved = str(file_path)
+                    if not Path(resolved).exists():
+                        logger.info(f"本地未找到 {resolved}，启动全盘搜索...")
+                        found = GlobalFileFinder.find(
+                            user_input,
+                            timeout=FILE_SEARCH_TIMEOUT,
+                        )
+                        if found:
+                            resolved = str(found)
+                            logger.info(f"全盘搜索找到: {resolved}")
+                        else:
+                            return {
+                                "output": (
+                                    f"❌ 文件未找到: {file_path}\n"
+                                    f"已搜索范围：当前目录 → 桌面/文档/下载 → 全盘\n"
+                                    f"请确认文件名是否正确，或提供完整路径。"
+                                ),
+                                "error": "FileNotFoundError",
+                            }
+                    desc = self.multimodal_skill.describe_content(resolved)
                     return {"output": desc, "error": None}
                 else:
                     return {"output": "请指定要解析的文件路径。例如: 解析 ./docs/demo.pdf", "error": None}

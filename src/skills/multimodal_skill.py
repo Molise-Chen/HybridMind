@@ -5,8 +5,9 @@ HybridMind — 多模态解析技能模块
 
 from pathlib import Path
 
-from src.utils.file_utils import read_image, read_pdf, read_markdown
+from src.utils.file_utils import read_image, read_pdf, read_markdown, GlobalFileFinder
 from src.utils.logger import logger
+from src.config import FILE_SEARCH_TIMEOUT
 
 
 class MultimodalSkill:
@@ -42,12 +43,22 @@ class MultimodalSkill:
     def describe_content(self, path: str | Path) -> str:
         """
         根据文件类型自动选择解析策略，返回人类可读的内容描述。
-        
         支持: png / jpg / jpeg / gif / bmp / pdf / md / txt
+        如果文件本地不存在，自动启动全盘搜索。
         """
         path = Path(path)
         if not path.exists():
-            return f"❌ 文件不存在: {path}"
+            logger.info(f"本地未找到 {path}，启动全盘搜索...")
+            found = GlobalFileFinder.find(str(path), timeout=FILE_SEARCH_TIMEOUT)
+            if found:
+                path = found
+                logger.info(f"全盘搜索找到: {path}")
+            else:
+                return (
+                    f"❌ 文件未找到: {path}\n"
+                    f"已搜索范围：当前目录 → 桌面/文档/下载 → 全盘\n"
+                    f"请确认文件名是否正确，或提供完整路径。"
+                )
         
         suffix = path.suffix.lower()
         
